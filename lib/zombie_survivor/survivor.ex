@@ -5,10 +5,11 @@ defmodule ZombieSurvivor.Survivor do
           name: String.t(),
           wounds: non_neg_integer,
           equipment: [String.t()],
-          experience: non_neg_integer
+          experience: non_neg_integer,
+          game: pid
         }
 
-  defstruct name: "", wounds: 0, equipment: [], experience: 0
+  defstruct name: "", wounds: 0, equipment: [], experience: 0, game: nil
 
   @spec new([{atom, any}]) :: Survivor.t()
   def new(opts \\ []), do: struct(__MODULE__, opts)
@@ -26,8 +27,12 @@ defmodule ZombieSurvivor.Survivor do
 
   @spec wound(Survivor.t(), non_neg_integer) :: Survivor.t()
   def wound(survivor, num \\ 1) do
-    %{survivor | wounds: survivor.wounds + num}
-    |> discard_equipment()
+    if dead?(survivor) do
+      survivor
+    else
+      %{survivor | wounds: survivor.wounds + num}
+      |> discard_equipment()
+    end
   end
 
   @spec kill_zombies(Survivor.t(), non_neg_integer) :: Survivor.t()
