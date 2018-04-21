@@ -11,6 +11,10 @@ defmodule GameTest do
     test "that has 0 survivors" do
       assert Map.size(Game.new().survivors) == 0
     end
+
+    test "that's at level blue" do
+      assert Game.level(Game.new()) == :blue
+    end
   end
 
   describe "add_survivor/1" do
@@ -67,6 +71,34 @@ defmodule GameTest do
       g = Game.new()
 
       refute Game.ended?(g)
+    end
+  end
+
+  describe "level/1" do
+    test "returns the level of the highest levelled survivor" do
+      g =
+        Game.new()
+        |> Game.add_survivor(@new_survivor)
+
+      assert Game.level(g) == :blue
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Eric", experience: 10))
+
+      assert Game.level(g) == :yellow
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Jack", experience: 20))
+
+      assert Game.level(g) == :orange
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Liru", experience: 1_000_000))
+
+      assert Game.level(g) == :red
     end
   end
 end

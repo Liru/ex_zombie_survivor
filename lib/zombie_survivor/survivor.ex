@@ -4,16 +4,20 @@ defmodule ZombieSurvivor.Survivor do
   @type t :: %__MODULE__{
           name: String.t(),
           wounds: non_neg_integer,
-          equipment: [String.t()]
+          equipment: [String.t()],
+          experience: non_neg_integer
         }
 
-  defstruct name: "", wounds: 0, equipment: []
+  defstruct name: "", wounds: 0, equipment: [], experience: 0
 
   @spec new([{atom, any}]) :: Survivor.t()
   def new(opts \\ []), do: struct(__MODULE__, opts)
 
   @spec dead?(Survivor.t()) :: boolean
   def dead?(survivor), do: survivor.wounds >= 2
+
+  @spec level(Survivor.t()) :: ZombieSurvivor.level()
+  def level(survivor), do: ZombieSurvivor.level(survivor.experience)
 
   @spec max_actions(Survivor.t()) :: non_neg_integer
   def max_actions(_survivor) do
@@ -24,6 +28,11 @@ defmodule ZombieSurvivor.Survivor do
   def wound(survivor, num \\ 1) do
     %{survivor | wounds: survivor.wounds + num}
     |> discard_equipment()
+  end
+
+  @spec kill_zombies(Survivor.t(), non_neg_integer) :: Survivor.t()
+  def kill_zombies(survivor, count \\ 1) do
+    %{survivor | experience: survivor.experience + count}
   end
 
   @spec max_equipment(Survivor.t()) :: non_neg_integer

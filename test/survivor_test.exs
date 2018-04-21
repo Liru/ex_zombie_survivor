@@ -14,6 +14,14 @@ defmodule SurvivorTest do
     test "gives a survivor with 0 wounds" do
       assert %Survivor{wounds: 0} = Survivor.new()
     end
+
+    test "gives a survivor with 0 experience" do
+      assert %Survivor{experience: 0} = Survivor.new()
+    end
+
+    test "gives a survivor at level blue" do
+      assert Survivor.level(Survivor.new()) == :blue
+    end
   end
 
   describe "dead?/1" do
@@ -33,6 +41,38 @@ defmodule SurvivorTest do
       s = Survivor.new()
       refute Survivor.dead?(s)
     end
+  end
+
+  describe "kill_zombies/1" do
+    # TODO: Property testing, always increments
+    test "increases experience by 1" do
+      s =
+        Survivor.new()
+        |> Survivor.kill_zombies()
+
+      assert s.experience == 1
+    end
+  end
+
+  describe "level/1" do
+    [
+      {:blue, :yellow, 6},
+      {:yellow, :orange, 18},
+      {:orange, :red, 42}
+    ]
+    |> Enum.each(fn {old, new, threshold} ->
+      @old old
+      @new new
+      @threshold threshold
+      test "upgrades from #{@old} to #{@new} when exceeding #{@threshold} experience" do
+        s = Survivor.new(experience: @threshold)
+        assert Survivor.level(s) == @old
+
+        s = s |> Survivor.kill_zombies()
+
+        assert Survivor.level(s) == @new
+      end
+    end)
   end
 
   describe "max_actions/1" do
