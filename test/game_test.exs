@@ -100,5 +100,31 @@ defmodule GameTest do
 
       assert Game.level(g) == :red
     end
+
+    test "returns the level of the highest levelled living survivor" do
+      g =
+        Game.new()
+        |> Game.add_survivor(@new_survivor)
+
+      assert Game.level(g) == :blue
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Eric", experience: 10))
+
+      assert Game.level(g) == :yellow
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Jack", experience: 20, wounds: 2))
+
+      assert Game.level(g) == :yellow
+
+      g =
+        g
+        |> Game.add_survivor(Survivor.new(name: "Liru", experience: 1_000_000, wounds: 2))
+
+      assert Game.level(g) == :yellow
+    end
   end
 end

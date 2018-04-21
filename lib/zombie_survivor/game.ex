@@ -31,6 +31,7 @@ defmodule ZombieSurvivor.Game do
   @spec level(Game.t()) :: ZombieSurvivor.level()
   def level(game) do
     game.survivors
+    |> Enum.reject(fn {_, s} -> Survivor.dead?(s) end)
     |> Enum.reduce(0, fn {_, s}, acc -> max(s.experience, acc) end)
     |> ZombieSurvivor.level()
   end
