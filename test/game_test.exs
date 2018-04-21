@@ -7,124 +7,102 @@ defmodule GameTest do
   @new_survivor Survivor.new(name: "Zombait")
   @dead_survivor Survivor.new(name: "Deadman", wounds: 2)
 
+  setup do
+    game = start_supervised!(Game)
+    %{game: game}
+  end
+
   describe "new/0 starts a game" do
-    test "that has 0 survivors" do
-      assert Map.size(Game.new().survivors) == 0
+    test "that has 0 survivors", %{game: game} do
+      assert Map.size(Game.survivors(game)) == 0
     end
 
-    test "that's at level blue" do
-      assert Game.level(Game.new()) == :blue
+    test "that's at level blue", %{game: game} do
+      assert Game.level(game) == :blue
     end
   end
 
   describe "add_survivor/1" do
-    test "adds a survivor to a game" do
-      g =
-        Game.new()
-        |> Game.add_survivor(@new_survivor)
+    test "adds a survivor to a game", %{game: game} do
+      Game.add_survivor(game, @new_survivor)
 
-      assert Map.size(g.survivors) == 1
+      assert Map.size(Game.survivors(game)) == 1
 
-      g =
-        g
-        |> Game.add_survivor(%{@new_survivor | name: "Larry"})
+      Game.add_survivor(game, %{@new_survivor | name: "Larry"})
 
-      assert Map.size(g.survivors) == 2
+      assert Map.size(Game.survivors(game)) == 2
     end
 
-    test "ensures that two survivors with the same name can't exist" do
-      g =
-        Game.new()
-        |> Game.add_survivor(@new_survivor)
-        |> Game.add_survivor(@new_survivor)
+    test "ensures that two survivors with the same name can't exist", %{game: game} do
+      game
+      |> Game.add_survivor(@new_survivor)
+      |> Game.add_survivor(@new_survivor)
 
-      assert Map.size(g.survivors) == 1
+      assert Map.size(Game.survivors(game)) == 1
     end
   end
 
   describe "ended?/1" do
-    test "returns true if all its survivors are dead" do
+    test "returns true if all its survivors are dead", %{game: game} do
       # TODO: Property test, add many dead survivors
-      g =
-        Game.new()
-        |> Game.add_survivor(@dead_survivor)
+      game
+      |> Game.add_survivor(@dead_survivor)
 
-      assert Game.ended?(g)
+      assert Game.ended?(game)
 
-      g =
-        g
-        |> Game.add_survivor(%{@dead_survivor | name: "Zambee"})
+      game
+      |> Game.add_survivor(%{@dead_survivor | name: "Zambee"})
 
-      assert Game.ended?(g)
+      assert Game.ended?(game)
     end
 
-    test "returns false if at least one survivor is alive" do
-      g =
-        Game.new()
-        |> Game.add_survivor(@new_survivor)
-        |> Game.add_survivor(@dead_survivor)
+    test "returns false if at least one survivor is alive", %{game: game} do
+      game
+      |> Game.add_survivor(@new_survivor)
+      |> Game.add_survivor(@dead_survivor)
 
-      refute Game.ended?(g)
+      refute Game.ended?(game)
     end
 
-    test "returns false if no survivors joined" do
-      g = Game.new()
-
-      refute Game.ended?(g)
+    test "returns false if no survivors joined", %{game: game} do
+      refute Game.ended?(game)
     end
   end
 
   describe "level/1" do
-    test "returns the level of the highest levelled survivor" do
-      g =
-        Game.new()
-        |> Game.add_survivor(@new_survivor)
+    test "returns the level of the highest levelled survivor", %{game: game} do
+      Game.add_survivor(game, @new_survivor)
 
-      assert Game.level(g) == :blue
+      assert Game.level(game) == :blue
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Eric", experience: 10))
+      Game.add_survivor(game, Survivor.new(name: "Eric", experience: 10))
 
-      assert Game.level(g) == :yellow
+      assert Game.level(game) == :yellow
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Jack", experience: 20))
+      Game.add_survivor(game, Survivor.new(name: "Jack", experience: 20))
 
-      assert Game.level(g) == :orange
+      assert Game.level(game) == :orange
+      Game.add_survivor(game, Survivor.new(name: "Liru", experience: 1_000_000))
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Liru", experience: 1_000_000))
-
-      assert Game.level(g) == :red
+      assert Game.level(game) == :red
     end
 
-    test "returns the level of the highest levelled living survivor" do
-      g =
-        Game.new()
-        |> Game.add_survivor(@new_survivor)
+    test "returns the level of the highest levelled living survivor", %{game: game} do
+      Game.add_survivor(game, @new_survivor)
 
-      assert Game.level(g) == :blue
+      assert Game.level(game) == :blue
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Eric", experience: 10))
+      Game.add_survivor(game, Survivor.new(name: "Eric", experience: 10))
 
-      assert Game.level(g) == :yellow
+      assert Game.level(game) == :yellow
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Jack", experience: 20, wounds: 2))
+      Game.add_survivor(game, %{@dead_survivor | name: "Jack", experience: 20})
 
-      assert Game.level(g) == :yellow
+      assert Game.level(game) == :yellow
 
-      g =
-        g
-        |> Game.add_survivor(Survivor.new(name: "Liru", experience: 1_000_000, wounds: 2))
+      Game.add_survivor(game, %{@dead_survivor | name: "Fake Liru", experience: 1_000_000})
 
-      assert Game.level(g) == :yellow
+      assert Game.level(game) == :yellow
     end
   end
 end
